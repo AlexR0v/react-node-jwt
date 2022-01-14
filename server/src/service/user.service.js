@@ -34,6 +34,45 @@ class UserService {
     await user.save()
   }
 
+  async login (email, password) {
+    const user = await UserModel.findOne({ email })
+    if (!user) {
+      throw ApiException.BadRequest(`Пользователь с почтовым адресом ${email} ненайден`)
+    }
+    const isPassEquals = await bcrypt.compare(password, user.password)
+    if (!isPassEquals) {
+      throw ApiException.BadRequest(`Пароль не верный`)
+    }
+    const userDto = new UserDto(user)
+    const tokens = tokenService.generateToken({ ...userDto })
+    await tokenService.saveToken(userDto.id, tokens.refreshToken)
+
+    return {
+      ...tokens, user: userDto
+    }
+  }
+
+  async logout (refreshToken) {
+    return await tokenService.removeToken(refreshToken)
+  }
+
+  async refresh (refreshToken) {
+    if (!refreshToken) {
+      throw ApiException.UnauthorizedError()
+    }
+    const userData = tokenService.validateRefreshToken(refreshToken)
+    const tokenFromDb = await tokenService.findToken(refreshToken)
+    if (!userData || !tokenFromDb) {
+      throw ApiException.UnauthorizedError()
+    }
+    const user = await UserModel.findById(userData.id)
+    const userDto = new UserDto(user)
+    const tokens = tokenService.generateToken({ ...userDto })
+
+    await tokenService.saveToken(userDto.id, tokens.refreshToken)
+    return { ...tokens, user: userDto }
+  }
+
   async getUsers () {
     const users = await UserModel.find()
     return users.map(user => new UserDto(user))

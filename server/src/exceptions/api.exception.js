@@ -1,6 +1,6 @@
 export class ApiException extends Error {
   status
-  message
+  errors
 
   constructor (status, message, errors = []) {
     super(message)
