@@ -12,7 +12,7 @@ class UserController {
       const { email, password } = req.body
       const userData = await userService.registration(email, password)
       res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
-      return res.status(201).json({ success: true, userData })
+      return res.status(201).json(userData)
 
     } catch (e) {
       next(e)
@@ -24,7 +24,7 @@ class UserController {
       const { email, password } = req.body
       const userData = await userService.login(email, password)
       res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
-      return res.status(201).json({ success: true, userData })
+      return res.status(201).json(userData)
     } catch (e) {
       next(e)
     }
@@ -36,7 +36,7 @@ class UserController {
 
       const token = await userService.logout(refreshToken)
       res.clearCookie('refreshToken')
-      return res.json({ success: true, token })
+      return res.json(token)
 
     } catch (e) {
       next(e)
@@ -58,7 +58,7 @@ class UserController {
       const { refreshToken } = req.cookies
       const userData = await userService.refresh(refreshToken)
       res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
-      return res.status(201).json({ success: true, userData })
+      return res.status(201).json(userData)
     } catch (e) {
       next(e)
     }
@@ -67,7 +67,7 @@ class UserController {
   async getUsers (req, res, next) {
     try {
       const users = await userService.getUsers()
-      res.json({ success: true, users })
+      res.json(users)
     } catch (e) {
       next(e)
     }
@@ -77,7 +77,7 @@ class UserController {
     try {
       const { id } = req.params
       await userService.deleteUser(id)
-      res.json({ success: true, message: 'Пользователь удален' })
+      res.json({ message: 'Пользователь удален' })
     } catch (e) {
       next(e)
     }
